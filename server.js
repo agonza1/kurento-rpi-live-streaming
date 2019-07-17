@@ -39,7 +39,7 @@ var options =
 
 var app = express();
 
-const OVERLAY_URL = 'https://github.com/agonza1/kurento-rpi-live-streaming/static/img/mountain-hat-got.png';
+const OVERLAY_URL = 'https://raw.githubusercontent.com/agonza1/kurento-rpi-live-streaming/master/static/img/mountain-hat-got.png';
 /*
  * Definition of global variables.
  */
@@ -356,7 +356,7 @@ function createWebrtcOverlayElements(pipeline, ws, callback) {
 			}
 			console.info('FACEOVERLAY created!');
 			faceOverlayFilter.setOverlayedImage(OVERLAY_URL,
-				-0.35, -1.6, 1, 1.6, function(error) {
+				-0.35, -0.7, 1.5, 1.7, function(error) {
 					if (error) {
 						return callback(error);
 					}

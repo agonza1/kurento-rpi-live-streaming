@@ -9,63 +9,63 @@ const util = require('util');
 const fs = require('fs');
 const serveIndex = require('serve-index');
 const io = require('socket.io-client');
-const signaling_backend = process.env.SIGNALING_SERVER || 'rpi-securecamera.tk';
+const signaling_backend = process.env.SIGNALING_SERVER || 'cluecon-webrtc.tk';
 var socket = io.connect('https://' + signaling_backend);
 const exec = util.promisify(child_process.exec);
 
-const app = express();
+// const app = express();
 
 const room_name = process.env.ROOM_NAME || 'agonza1';
-const privateKey = fs.readFileSync( './cert/key.pem' ).toString();
-const certificate = fs.readFileSync( './cert/server.crt' ).toString();
+// const privateKey = fs.readFileSync( './cert/key.pem' ).toString();
+// const certificate = fs.readFileSync( './cert/server.crt' ).toString();
 var token;
 
-var options = {key: privateKey, cert: certificate};
-app.use(cors());
-app.use(express.static('public'));
-app.use('/', serveIndex('public'));
+// var options = {key: privateKey, cert: certificate};
+// app.use(cors());
+// app.use(express.static('public'));
+// app.use('/', serveIndex('public'));
 
 // create the server
-const server = https.createServer(options, app);
-const wsServer = new WebSocket.Server({server});
-// WebSocket rpi local server
-wsServer.on('connection', function(request) {
-  var connection = request.accept(null, request.origin);
-  console.log('new WS request');
-  connection.on('message', function(message) {
-    if (message) {
-      console.log('received: %s', message);
-      var msg = JSON.parse(message);
-      switch (msg.action) {
-        case 'picamera-up':
-          console.log('picamera up! Turning OFF v4l2');
-          off_camera_driver();
-          break;
-        case 'picamera-down':
-          console.log('picamera down! Turning ON v4l2');
-          // By just reloading chromium we can achieve that
-          if (myCall.getCallProcess())
-            myCall.endCall(myCall.getCallProcess());
-          myCall.startCall();
-          break;
-        default:
-          console.log('Unrecognized action: ' + msg.action);
-      }
-    }
-  });
-  connection.on('close', function(connection) {
-    console.log('closed WS connection');
-  });
-});
-
-var port_https = process.env.RPI_SERVER_PORT_HTTPS || 1337;
-var port_http = process.env.RPI_SERVER_PORT_HTTP || 1336;
-server.listen(port_https, function listening() {
-  console.log('RPI HTTPS server listening on %d', server.address().port);
-});
-http.createServer(app).listen(port_http, function listening() {
-  console.log('RPI HTTP server listening on %d', port_http);
-});
+// const server = https.createServer(options, app);
+// const wsServer = new WebSocket.Server({server});
+// // WebSocket rpi local server
+// wsServer.on('connection', function(request) {
+//   var connection = request.accept(null, request.origin);
+//   console.log('new WS request');
+//   connection.on('message', function(message) {
+//     if (message) {
+//       console.log('received: %s', message);
+//       var msg = JSON.parse(message);
+//       switch (msg.action) {
+//         case 'picamera-up':
+//           console.log('picamera up! Turning OFF v4l2');
+//           off_camera_driver();
+//           break;
+//         case 'picamera-down':
+//           console.log('picamera down! Turning ON v4l2');
+//           // By just reloading chromium we can achieve that
+//           if (myCall.getCallProcess())
+//             myCall.endCall(myCall.getCallProcess());
+//           myCall.startCall();
+//           break;
+//         default:
+//           console.log('Unrecognized action: ' + msg.action);
+//       }
+//     }
+//   });
+//   connection.on('close', function(connection) {
+//     console.log('closed WS connection');
+//   });
+// });
+//
+// var port_https = process.env.RPI_SERVER_PORT_HTTPS || 1337;
+// var port_http = process.env.RPI_SERVER_PORT_HTTP || 1336;
+// server.listen(port_https, function listening() {
+//   console.log('RPI HTTPS server listening on %d', server.address().port);
+// });
+// http.createServer(app).listen(port_http, function listening() {
+//   console.log('RPI HTTP server listening on %d', port_http);
+// });
 
 async function off_camera_driver() {
   const { stdout, stderr } = await exec("kill $(lsof /dev/video0  | awk '{print $2}')");
@@ -102,7 +102,7 @@ class Call {
       '--disable-gpu',
       '--no-sandbox',
       '--use-fake-ui-for-media-stream',
-      'https://'+ signaling_backend +'/secure_broadcast/'+ that.room + '?token=' + token
+      'https://'+ signaling_backend + '/broadcast.html'
     ];
     var env = Object.assign({}, process.env);
     var chrome = child_process.spawn('chromium-browser', args, {
@@ -129,7 +129,7 @@ class Call {
 
 var deviceId = process.env.DEVICE_ID || 'rpi-test';
 var myCall = new Call(deviceId, room_name, 'generated');
-//myCall.startCall();
+myCall.startCall();
 console.log('Connecting to', signaling_backend);
 
 socket.on('connect', function(){
