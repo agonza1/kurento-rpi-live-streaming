@@ -1,0 +1,10 @@
+.env
+node_modules
+.tmp
+*.iml
+out
+gen
+.node_history
+static/bower_components/*
+# IntelliJ project files
+.idea

@@ -1,0 +1,20 @@
+{
+  "name": "kurento-one2many-call",
+  "version": "6.10.1-dev",
+  "private": true,
+  "scripts": {
+    "dev": "nodemon --watch static --exec node server.js",
+    "postinstall": "cd static && bower install",
+    "bower": "cd static && bower install"
+  },
+  "dependencies": {
+    "express": "~4.12.4",
+    "minimist": "^1.1.1",
+    "ws": "~1.0.1",
+    "kurento-client": "Kurento/kurento-client-js"
+  },
+  "devDependencies": {
+    "bower": "^1.8.8",
+    "nodemon": "^1.19.1"
+  }
+}
