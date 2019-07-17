@@ -39,7 +39,7 @@ var options =
 
 var app = express();
 
-const OVERLAY_URL = 'https://github.com/Kurento/kurento-tutorial-node/raw/master/kurento-magic-mirror/static/img/mario-wings.png';
+const OVERLAY_URL = 'https://github.com/agonza1/kurento-rpi-live-streaming/static/img/mountain-hat-got.png';
 /*
  * Definition of global variables.
  */
@@ -206,7 +206,7 @@ function startPresenter(sessionId, ws, sdpOffer, callback) {
 
 			presenter.pipeline = pipeline;
 
-			createMediaElements(pipeline, ws, function(error, webRtcEndpoint, faceOverlayFilter) {
+			pipeline.create('WebRtcEndpoint', function(error, webRtcEndpoint) {
 				if (error) {
 					stop(sessionId);
 					return callback(error);
@@ -224,15 +224,7 @@ function startPresenter(sessionId, ws, sdpOffer, callback) {
                     }
                 }
 
-				connectMediaElements(webRtcEndpoint, faceOverlayFilter, function (error) {
-					if (error) {
-						// pipeline.release();
-						stop(sessionId);
-						return callback(error);
-					}
-
 					presenter.webRtcEndpoint = webRtcEndpoint;
-					presenter.faceOverlayFilter = faceOverlayFilter;
 
 					webRtcEndpoint.on('OnIceCandidate', function (event) {
 						var candidate = kurento.getComplexType('IceCandidate')(event.candidate);
@@ -269,7 +261,6 @@ function startPresenter(sessionId, ws, sdpOffer, callback) {
 				});
 
 
-            });
         });
 	});
 }
@@ -282,7 +273,7 @@ function startViewer(sessionId, ws, sdpOffer, callback) {
 		return callback(noPresenterMessage);
 	}
 
-	presenter.pipeline.create('WebRtcEndpoint', function(error, webRtcEndpoint) {
+	createWebrtcOverlayElements(presenter.pipeline, ws, function(error, webRtcEndpoint, faceOverlayFilter) {
 		if (error) {
 			stop(sessionId);
 			return callback(error);
@@ -304,7 +295,7 @@ function startViewer(sessionId, ws, sdpOffer, callback) {
 			}
 		}
 
-		connectMediaElements(webRtcEndpoint, presenter.faceOverlayFilter, function (error) {
+		connectMediaElements(presenter.webRtcEndpoint, faceOverlayFilter, function (error) {
 			if (error) {
 				stop(sessionId);
 				return callback(error);
@@ -328,37 +319,32 @@ function startViewer(sessionId, ws, sdpOffer, callback) {
 					return callback(noPresenterMessage);
 				}
 
-				presenter.webRtcEndpoint.connect(presenter.faceOverlayFilter, function (error) {
+				faceOverlayFilter.connect(webRtcEndpoint, function (error) {
 					if (error) {
 						stop(sessionId);
 						return callback(error);
 					}
-					presenter.faceOverlayFilter.connect(webRtcEndpoint, function (error) {
+					if (presenter === null) {
+						stop(sessionId);
+						return callback(noPresenterMessage);
+					}
+
+					callback(null, sdpAnswer);
+					webRtcEndpoint.gatherCandidates(function (error) {
 						if (error) {
 							stop(sessionId);
 							return callback(error);
 						}
-						if (presenter === null) {
-							stop(sessionId);
-							return callback(noPresenterMessage);
-						}
-
-						callback(null, sdpAnswer);
-						webRtcEndpoint.gatherCandidates(function (error) {
-							if (error) {
-								stop(sessionId);
-								return callback(error);
-							}
-						});
 					});
 				});
+
 			});
 		});
 
 	});
 }
 
-function createMediaElements(pipeline, ws, callback) {
+function createWebrtcOverlayElements(pipeline, ws, callback) {
 	pipeline.create('WebRtcEndpoint', function(error, webRtcEndpoint) {
 		if (error) {
 			return callback(error);
@@ -370,7 +356,7 @@ function createMediaElements(pipeline, ws, callback) {
 			}
 			console.info('FACEOVERLAY created!');
 			faceOverlayFilter.setOverlayedImage(OVERLAY_URL,
-				-0.35, -1.2, 1.6, 1.6, function(error) {
+				-0.35, -1.6, 1, 1.6, function(error) {
 					if (error) {
 						return callback(error);
 					}
@@ -391,7 +377,7 @@ function connectMediaElements(webRtcEndpoint, faceOverlayFilter, callback) {
 			if (error) {
 				return callback(error);
 			}
-			console.info('WEBRTC <=> FACEOVERLAY connected!');
+			console.info('Media Elements Connected!');
 			return callback(null);
 		});
 	});
