@@ -78,9 +78,18 @@ function presenter() {
 	if (!webRtcPeer) {
 		showSpinner(video);
 
+		var constraints = {
+			audio: false,
+			video: {
+				width: 640,
+				framerate: 25
+			}
+		};
+
 		var options = {
 			localVideo: video,
-			onicecandidate : onIceCandidate
+			onicecandidate : onIceCandidate,
+			mediaConstraints: constraints
 	    }
 
 		webRtcPeer = kurentoUtils.WebRtcPeer.WebRtcPeerSendonly(options, function(error) {
