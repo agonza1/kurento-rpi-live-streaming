@@ -102,7 +102,7 @@ class Call {
       '--disable-gpu',
       '--no-sandbox',
       '--use-fake-ui-for-media-stream',
-      'https://'+ signaling_backend + '/broadcast.html'
+      'https://'+ signaling_backend + ':8443/broadcast.html'
     ];
     var env = Object.assign({}, process.env);
     var chrome = child_process.spawn('chromium-browser', args, {
